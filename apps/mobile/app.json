@@ -1,0 +1,36 @@
+{
+  "expo": {
+    "name": "DroidVibe",
+    "slug": "droidvibe",
+    "scheme": "droidvibe",
+    "version": "1.0.0",
+    "orientation": "default",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0A1518"
+    },
+    "android": {
+      "package": "com.droidvibe.app",
+      "minSdkVersion": 24,
+      "targetSdkVersion": 35,
+      "edgeToEdgeEnabled": true,
+      "permissions": ["android.hardware.usb.host"],
+      "features": [
+        { "name": "android.hardware.usb.host", "required": false }
+      ],
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#00979D"
+      }
+    },
+    "plugins": [],
+    "experiments": {
+      "tsrPaths": true
+    },
+    "ios": { "supportsTablet": true }
+  }
+}
