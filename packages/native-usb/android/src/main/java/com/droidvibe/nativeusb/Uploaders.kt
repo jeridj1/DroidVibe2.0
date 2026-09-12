@@ -55,8 +55,7 @@ object Uploaders {
             "dfu" -> UploadResult(false, "failed", false, "DFU backend not yet implemented (use arduino-cli upload path).")
             else -> UploadResult(false, "failed", false, "Unknown upload protocol: " + protocol)
         }
-"esptool" -> espRom(usbManager, device, firmware, verify, onP
-rogress)
+"esptool" -> espRom(usbManager, device, firmware, verify, onProgress)
             "dfu" -> UploadResult(false, "failed", false, "DFU backend not yet implemented (use arduino-cli upload path).")
             else -> UploadResult(false, "failed", false, "Unknown upload protocol: " + protocol)
         
@@ -97,7 +96,8 @@ rogress)
                     Log.i(TAG, "STK500v1 sync achieved on attempt " + attempt)
                     break
                 }
-                Log.w(TAG, "STK500v1 sync attempt " + attempt + " failed, retrying...")
+                Log.w(TAG, "STK500v1 s
+ync attempt " + attempt + " failed, retrying...")
             }
             if (!synced) {
                 return UploadResult(false, "failed", false, "No STK500v1 sync after 15 attempts (bootloader not responding). Try pressing reset on the board.")
@@ -134,7 +134,8 @@ rogress)
                 onProgress("verifying", 1.0, if (verifiedOk) "match" else "mismatch")
                 if (!verifiedOk) {
                     stkExpect(driver, byteArrayOf(STK_LEAVE_PROGMODE, CRC_EOP), byteArrayOf(INSYNC, OK))
-                    return UploadResult(false, "failed", false, "Verification mismatch (read-back)")
+                    ret
+urn UploadResult(false, "failed", false, "Verification mismatch (read-back)")
                 }
             }
             stkExpect(driver, byteArrayOf(STK_LEAVE_PROGMODE, CRC_EOP), byteArrayOf(INSYNC, OK))
@@ -183,7 +184,8 @@ rify && verifiedOk, "STK500v1 upload complete")
             for (j in needle.indices) if (haystack[i + j] != needle[j]) { match = false; break }
             if (match) return true
         }
-        return false
+        
+return false
     }
 
     // ---------------- AVR109 / Caterina ----------------
@@ -235,7 +237,8 @@ ss(
         try {
             driver.write("V".toByteArray()); Thread.sleep(50)
             var done = 0
-            for ((addr, page) in pages) {
+            for ((addr, page) 
+in pages) {
                 onProgress("writing", done.toDouble() / pages.size, "page @0x" + addr.toString(16))
                 val wordAddr = addr / 2
                 driver.write(byteArrayOf('A'.code.toByte(), ((wordAddr shr 8) and 0xff).toByte(), (wordAddr and 0xff).toByte()))
@@ -275,7 +278,8 @@ page.size / 32 + 2).toLong())
         val epOut = (0 until iface.endpointCount).map { iface.getEndpoint(it) }.first { it.direction == 0x00 }
         try {
             onProgress("handshake", 0.0, "ESP SYNC")
-            val sync = EspRom.syncCommand()
+            val sync = EspRom.syncComman
+d()
             var attempts = 0
             var synced = false
             while (attempts < 10 && !synced) {
@@ -317,7 +321,8 @@ g", 0
         val buf = ByteArray(64)
         val deadline = System.currentTimeMillis() + 3000
         while (System.currentTimeMillis() < deadline) {
-            val n = conn.bulkTransfer(epIn, buf, buf.size, 500)
+            val n = conn.bulkTransfer(epIn, 
+buf, buf.size, 500)
             if (n > 0 && buf[0] == 0x01.toByte()) return
         }
     }
