@@ -48,11 +48,11 @@ object Uploaders {
         return when (protocol) {
             "stk500v1" -> stk500v1(usbManager, device, firmware, baudRate, verify, onProgress)
             "avr109" -> avr109(usbManager, device, firmware, baudRate, verify, onProgress)
-            "esptool" -> espRom(usbManager, device, firmware, verify, onProgress)
-            
-            "stlink" -> StLinkUploader.upload(usbManager, device, firmware, filename, baudRate, verify) { stage, progress, message ->
+                        "stlink" -> StLinkUploader.upload(usbManager, device, firmware, filename, baudRate, verify) { stage, progress, message ->
                 onProgress(stage, progress.toDouble() / 100.0, message)
-            }"dfu" -> UploadResult(false, "failed", false, "DFU backend not yet implemented (use arduino-cli upload path).")
+            }
+"esptool" -> espRom(usbManager, device, firmware, verify, onProgress)
+            "dfu" -> UploadResult(false, "failed", false, "DFU backend not yet implemented (use arduino-cli upload path).")
             else -> UploadResult(false, "failed", false, "Unknown upload protocol: " + protocol)
         
 
