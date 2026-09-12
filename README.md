@@ -39,6 +39,7 @@ DroidVibe/
 - Java 17 (for Android builds)
 - Android SDK (API 35, build-tools 35.0.0)
 
+
 - Expo CLI (installed via pnpm)
 
 ## Quick Start
@@ -101,9 +102,14 @@ docker run -p 3001:3001 droidvibe-web
 | Backend | Hono, oRPC, arduino-cli |
 | Database | Turso (libSQL), Drizzle ORM |
 | Monorepo | pnpm, Turborepo |
-| CI/CD | GitHub
+| CI/CD | GitHu
+b
  Actions |
 
 ## License
 
 Private — © Jerid Johnston
+
+---
+*Last built: 2026-09-12T19:59:49.411Z
+*Branch: vibe-flashing-fixes*
