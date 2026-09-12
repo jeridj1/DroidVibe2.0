@@ -2,13 +2,13 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, vibe-flashing-fixes]
   pull_request:
     branches: [main]
   workflow_dispatch:
 
 concurrency:
-  group: ci-main
+  group: ci-${{ github.ref_name }}
   cancel-in-progress: true
 
 permissions:
@@ -81,6 +81,7 @@ jobs:
   test:
     name: Unit Tests
     runs-on: 
+
 ubuntu-latest
     timeout-minutes: 20
     needs: quality
@@ -146,7 +147,8 @@ ubuntu-latest
       - name: Build and verify on native ARM64
         run: |
           chmod +x scripts/build-mobile-toolchain.sh
-          scripts/build-mobi
+          scripts/build-mob
+i
 le-toolchain.sh "$RUNNER_TEMP/droidvibe-assets"
           test -s "$RUNNER_TEMP/droidvibe-assets/droidvibe-toolchain-proot"
           compgen -G "$RUNNER_TEMP/droidvibe-assets/droidvibe-toolchain-rootfs.tar.gz.part-*" >/dev/null
@@ -196,7 +198,8 @@ le-toolchain.sh "$RUNNER_TEMP/droidvibe-assets"
       - name: Expo prebuild
         working-directory: apps/mobile
         run: pnpm exec expo prebuild --platform android --no-install --clean
-      - name: Download verified ARM64 toolc
+      - name: Download verified ARM64 too
+lc
 hain
         uses: actions/download-artifact@v4
         with:
@@ -233,7 +236,8 @@ hain
           name: droidvibe-rp2040-logic-analyzer-uf2
           path: /tmp/rp2040-build/droidvibe_rp2040_logic_analyzer.uf2
           if-no-files-found: error
-          retention-days
+          retention-d
+ays
 : 30
       - name: Accept SDK licenses & install components
         run: |
@@ -265,7 +269,8 @@ hain
               elif grep -q 'buildFeatures {' app/build.gradle; then
                 sed -i '/buildFeatures {/a\        buildConfig = true' app/build.gradle
               elif grep -q 'android {' app/build.gradle; then
-                sed -i '/android {/a\    buildFeatures {\n        buildCo
+                sed -i '/android {/a\    buildFeatures {\n        bui
+ldCo
 nfig = true\n    }' app/build.gradle
               fi
             fi
@@ -312,7 +317,8 @@ nfig = true\n    }' app/build.gradle
           {
             echo "## Android APK Build Failure"
             echo "Commit: ${{ github.sha }}"
-            echo "Run: ${{ github.server_url }}/${{ gi
+            echo "Run: ${{ github.server_url }}/$
+{{ gi
 thub.repository }}/actions/runs/${{ github.run_id }}"
             echo '### Bundle Output'
             echo '~~~'
