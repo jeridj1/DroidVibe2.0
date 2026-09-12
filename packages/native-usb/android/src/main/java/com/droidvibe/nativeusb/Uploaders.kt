@@ -48,12 +48,13 @@ object Uploaders {
         return when (protocol) {
             "stk500v1" -> stk500v1(usbManager, device, firmware, baudRate, verify, onProgress)
             "avr109" -> avr109(usbManager, device, firmware, baudRate, verify, onProgress)
-                        "stlink" -> StLinkUploader.upload(usbManager, device, firmware, filename, baudRate, verify) { stage, progress, message ->
+            "stlink" -> StLinkUploader.upload(usbManager, device, firmware, filename, baudRate, verify) { stage, progress, message ->
                 onProgress(stage, progress.toDouble() / 100.0, message)
             }
-"esptool" -> espRom(usbManager, device, firmware, verify, onProgress)
+            "esptool" -> espRom(usbManager, device, firmware, verify, onProgress)
             "dfu" -> UploadResult(false, "failed", false, "DFU backend not yet implemented (use arduino-cli upload path).")
             else -> UploadResult(false, "failed", false, "Unknown upload protocol: " + protocol)
+        }else -> UploadResult(false, "failed", false, "Unknown upload protocol: " + protocol)
         
 
 }
@@ -97,7 +98,8 @@ object Uploaders {
             if (!synced) {
                 return UploadResult(false, "failed", false, "No STK500v1 sync after 15 attempts (bootloader not responding). Try pressing reset on the board.")
             }
-            onProgress("handshake", 0.5, "STK_READ_SIGN")
+            onProgress("handshake", 0
+.5, "STK_READ_SIGN")
             stkQuery(driver, byteArrayOf(STK_READ_SIGN, CRC_EOP), 3)
             onProgress("erasing", 0.0, "chip erase")
             stkExpect(driver, byteArrayOf(STK_CHIP_ERASE, CRC_EOP), byteArrayOf(INSYNC, OK))
@@ -133,7 +135,8 @@ object Uploaders {
             }
             stkExpect(driver, byteArrayOf(STK_LEAVE_PROGMODE, CRC_EOP), byteArrayOf(INSYNC, OK))
             onProgress("done", 1.0, "uploaded")
-            return UploadResult(true, "done", verify && verifiedOk, "STK500v1 upload complete")
+            return UploadResult(true, "done", ve
+rify && verifiedOk, "STK500v1 upload complete")
         } finally {
             driver.close()
         }
@@ -189,7 +192,8 @@ object Uploaders {
         verify: Boolean,
         onProgress: ProgressCb,
     ): UploadResult {
-        val hex = IntelHex.parse(firmware.toString(Charsets.US_ASCII))
+        va
+l hex = IntelHex.parse(firmware.toString(Charsets.US_ASCII))
         val pages = IntelHex.toPages(hex, 128)
         var driver: UsbSerialDriver? = null
         var enteredProgmode = false
@@ -231,7 +235,8 @@ ss(
                 onProgress("writing", done.toDouble() / pages.size, "page @0x" + addr.toString(16))
                 val wordAddr = addr / 2
                 driver.write(byteArrayOf('A'.code.toByte(), ((wordAddr shr 8) and 0xff).toByte(), (wordAddr and 0xff).toByte()))
-                Thread.sleep(5)
+                Thread.s
+leep(5)
                 val cmd = ByteArrayOutputStream()
                 cmd.write('B'.code); cmd.write(0); cmd.write(page.size); cmd.write('F'.code); cmd.write(page)
                 driver.write(cmd.toByteArray())
@@ -273,7 +278,8 @@ page.size / 32 + 2).toLong())
                 conn.bulkTransfer(epOut, sync, sync.size, 1000)
                 val resp = ByteArray(64)
                 val n = conn.bulkTransfer(epIn, resp, resp.size, 1000)
-                if (n > 0 && EspRom.isSyncReply(resp.copyOfRange(0, n))) synced = true
+                if 
+(n > 0 && EspRom.isSyncReply(resp.copyOfRange(0, n))) synced = true
                 attempts++
             }
             if (!synced) return UploadResult(false, "failed", false, "ESP ROM did not respond to SYNC")
