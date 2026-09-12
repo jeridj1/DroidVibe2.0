@@ -4,11 +4,11 @@ on:
   push:
     branches: [main, vibe-flashing-fixes]
   pull_request:
-    branches: [main]
+    branches: [main, vibe-flashing-fixes]
   workflow_dispatch:
 
 concurrency:
-  group: ci-${{ github.ref_name }}
+  group: ci-main
   cancel-in-progress: true
 
 permissions:
@@ -80,9 +80,7 @@ jobs:
 
   test:
     name: Unit Tests
-    runs-on: 
-
-ubuntu-latest
+    runs-on: ubuntu-latest
     timeout-minutes: 20
     needs: quality
     steps:
@@ -147,9 +145,7 @@ ubuntu-latest
       - name: Build and verify on native ARM64
         run: |
           chmod +x scripts/build-mobile-toolchain.sh
-          scripts/build-mob
-i
-le-toolchain.sh "$RUNNER_TEMP/droidvibe-assets"
+          scripts/build-mobile-toolchain.sh "$RUNNER_TEMP/droidvibe-assets"
           test -s "$RUNNER_TEMP/droidvibe-assets/droidvibe-toolchain-proot"
           compgen -G "$RUNNER_TEMP/droidvibe-assets/droidvibe-toolchain-rootfs.tar.gz.part-*" >/dev/null
       - name: Upload verified toolchain
@@ -198,9 +194,7 @@ le-toolchain.sh "$RUNNER_TEMP/droidvibe-assets"
       - name: Expo prebuild
         working-directory: apps/mobile
         run: pnpm exec expo prebuild --platform android --no-install --clean
-      - name: Download verified ARM64 too
-lc
-hain
+      - name: Download verified ARM64 toolchain
         uses: actions/download-artifact@v4
         with:
           name: droidvibe-local-toolchain
@@ -236,9 +230,7 @@ hain
           name: droidvibe-rp2040-logic-analyzer-uf2
           path: /tmp/rp2040-build/droidvibe_rp2040_logic_analyzer.uf2
           if-no-files-found: error
-          retention-d
-ays
-: 30
+          retention-days: 30
       - name: Accept SDK licenses & install components
         run: |
           yes | ${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager --licenses > /dev/null 2>&1 || true
@@ -267,18 +259,16 @@ ays
               if grep -q 'buildConfig = false' app/build.gradle; then
                 sed -i 's/buildConfig = false/buildConfig = true/g' app/build.gradle
               elif grep -q 'buildFeatures {' app/build.gradle; then
-                sed -i '/buildFeatures {/a\        buildConfig = true' app/build.gradle
+                sed -i '/buildFeatures {/a\\        buildConfig = true' app/build.gradle
               elif grep -q 'android {' app/build.gradle; then
-                sed -i '/android {/a\    buildFeatures {\n        bui
-ldCo
-nfig = true\n    }' app/build.gradle
+                sed -i '/android {/a\\    buildFeatures {\\n        buildConfig = true\\n    }' app/build.gradle
               fi
             fi
             if ! grep -q 'namespace "com.droidvibe.app"' app/build.gradle; then
               if grep -q 'namespace "' app/build.gradle; then
-                sed -i 's/namespace "[^"]*"/namespace "com.droidvibe.app"/' app/build.gradle
+                sed -i 's/namespace "[^"]*\"/namespace "com.droidvibe.app\"/' app/build.gradle
               elif grep -q 'android {' app/build.gradle; then
-                sed -i '/android {/a\    namespace "com.droidvibe.app"' app/build.gradle
+                sed -i '/android {/a\\    namespace "com.droidvibe.app"' app/build.gradle
               fi
             fi
           fi
@@ -288,13 +278,13 @@ nfig = true\n    }' app/build.gradle
           pnpm add -D @react-native-community/cli@latest 2>&1 | tee /tmp/bundle-output.txt
           echo "import 'expo-router/entry';" > index.js
           mkdir -p android/app/src/main/assets
-          pnpm exec react-native bundle \
-            --platform android \
-            --dev false \
-            --entry-file "$(pwd)/index.js" \
-            --bundle-output android/app/src/main/assets/index.android.bundle \
-            --assets-dest android/app/src/main/res/ \
-            --max-workers 2 \
+          pnpm exec react-native bundle \\
+            --platform android \\
+            --dev false \\
+            --entry-file "$(pwd)/index.js" \\
+            --bundle-output android/app/src/main/assets/index.android.bundle \\
+            --assets-dest android/app/src/main/res/ \\
+            --max-workers 2 \\
             --verbose 2>&1 | tee -a /tmp/bundle-output.txt
           code=${PIPESTATUS[0]}
           rm -f index.js
@@ -317,9 +307,7 @@ nfig = true\n    }' app/build.gradle
           {
             echo "## Android APK Build Failure"
             echo "Commit: ${{ github.sha }}"
-            echo "Run: ${{ github.server_url }}/$
-{{ gi
-thub.repository }}/actions/runs/${{ github.run_id }}"
+            echo "Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
             echo '### Bundle Output'
             echo '~~~'
             cat /tmp/bundle-output.txt 2>/dev/null || true
