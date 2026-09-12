@@ -55,15 +55,7 @@ object Uploaders {
             "dfu" -> UploadResult(false, "failed", false, "DFU backend not yet implemented (use arduino-cli upload path).")
             else -> UploadResult(false, "failed", false, "Unknown upload protocol: " + protocol)
         }
-"esptool" -> espRom(usbManager, device, firmware, verify, onProgress)
-            "dfu" -> UploadResult(false, "failed", false, "DFU backend not yet implemented (use arduino-cli upload path).")
-            else -> UploadResult(false, "failed", false, "Unknown upload protocol: " + protocol)
-        
-
-}
     }
-
-    // ---------------- STK500v1 (Uno, Mega) ----------------
 
     private fun stk500v1(
         usbManager: UsbManager,
@@ -96,20 +88,17 @@ object Uploaders {
                     Log.i(TAG, "STK500v1 sync achieved on attempt " + attempt)
                     break
                 }
-                Log.w(TAG, "STK500v1 s
-ync attempt " + attempt + " failed, retrying...")
+                Log.w(TAG, "STK500v1 sync attempt " + attempt + " failed, retrying...")
             }
             if (!synced) {
                 return UploadResult(false, "failed", false, "No STK500v1 sync after 15 attempts (bootloader not responding). Try pressing reset on the board.")
             }
-            onProgress("handshake", 0
-.5, "STK_READ_SIGN")
+            onProgress("handshake", 0.5, "STK_READ_SIGN")
             stkQuery(driver, byteArrayOf(STK_READ_SIGN, CRC_EOP), 3)
             onProgress("erasing", 0.0, "chip erase")
             stkExpect(driver, byteArrayOf(STK_CHIP_ERASE, CRC_EOP), byteArrayOf(INSYNC, OK))
-   
- 
-        var written = 0
+
+            var written = 0
             for ((addr, page) in pages) {
                 onProgress("writing", written.toDouble() / pages.size, "page @0x" + addr.toString(16))
                 val loadAddr = byteArrayOf(STK_LOAD_ADDRESS, ((addr shr 1) and 0xff).toByte(), ((addr shr 9) and 0xff).toByte(), CRC_EOP)
@@ -134,14 +123,12 @@ ync attempt " + attempt + " failed, retrying...")
                 onProgress("verifying", 1.0, if (verifiedOk) "match" else "mismatch")
                 if (!verifiedOk) {
                     stkExpect(driver, byteArrayOf(STK_LEAVE_PROGMODE, CRC_EOP), byteArrayOf(INSYNC, OK))
-                    ret
-urn UploadResult(false, "failed", false, "Verification mismatch (read-back)")
+                    return UploadResult(false, "failed", false, "Verification mismatch (read-back)")
                 }
             }
             stkExpect(driver, byteArrayOf(STK_LEAVE_PROGMODE, CRC_EOP), byteArrayOf(INSYNC, OK))
             onProgress("done", 1.0, "uploaded")
-            return UploadResult(true, "done", ve
-rify && verifiedOk, "STK500v1 upload complete")
+            return UploadResult(true, "done", verify && verifiedOk, "STK500v1 upload complete")
         } finally {
             driver.close()
         }
@@ -149,9 +136,7 @@ rify && verifiedOk, "STK500v1 upload complete")
 
     private fun stkExpect(driver: UsbSerialDriver, cmd: ByteArray, expect: ByteArray): Boolean {
         driver.write(cmd)
-     
-  
- val got = stkRead(driver, expect.size + 32, 2000)
+        val got = stkRead(driver, expect.size + 32, 2000)
         return contains(got, expect)
     }
 
@@ -184,11 +169,8 @@ rify && verifiedOk, "STK500v1 upload complete")
             for (j in needle.indices) if (haystack[i + j] != needle[j]) { match = false; break }
             if (match) return true
         }
-        
-return false
+        return false
     }
-
-    // ---------------- AVR109 / Caterina ----------------
 
     private fun avr109(
         usbManager: UsbManager,
@@ -198,15 +180,12 @@ return false
         verify: Boolean,
         onProgress: ProgressCb,
     ): UploadResult {
-        va
-l hex = IntelHex.parse(firmware.toString(Charsets.US_ASCII))
+        val hex = IntelHex.parse(firmware.toString(Charsets.US_ASCII))
         val pages = IntelHex.toPages(hex, 128)
         var driver: UsbSerialDriver? = null
         var enteredProgmode = false
         for (attempt in 1..10) {
-            onProgre
-ss(
-"resetting", (attempt - 1) / 10.0, "1200-baud Caterina attempt " + attempt + "/10")
+            onProgress("resetting", (attempt - 1) / 10.0, "1200-baud Caterina attempt " + attempt + "/10")
             val touch = UsbSerialDriver(usbManager, device) {}
             if (touch.open(1200, 8, 1, "none", false, false)) {
                 touch.write(byteArrayOf(0))
@@ -237,19 +216,15 @@ ss(
         try {
             driver.write("V".toByteArray()); Thread.sleep(50)
             var done = 0
-            for ((addr, page) 
-in pages) {
+            for ((addr, page) in pages) {
                 onProgress("writing", done.toDouble() / pages.size, "page @0x" + addr.toString(16))
                 val wordAddr = addr / 2
                 driver.write(byteArrayOf('A'.code.toByte(), ((wordAddr shr 8) and 0xff).toByte(), (wordAddr and 0xff).toByte()))
-                Thread.s
-leep(5)
+                Thread.sleep(5)
                 val cmd = ByteArrayOutputStream()
                 cmd.write('B'.code); cmd.write(0); cmd.write(page.size); cmd.write('F'.code); cmd.write(page)
                 driver.write(cmd.toByteArray())
-                Thread.sle
-ep((
-page.size / 32 + 2).toLong())
+                Thread.sleep((page.size / 32 + 2).toLong())
                 done++
             }
             driver.write("L".toByteArray())
@@ -259,8 +234,6 @@ page.size / 32 + 2).toLong())
             driver.close()
         }
     }
-
-    // ---------------- ESP ROM loader ----------------
 
     private fun espRom(
         usbManager: UsbManager,
@@ -278,22 +251,18 @@ page.size / 32 + 2).toLong())
         val epOut = (0 until iface.endpointCount).map { iface.getEndpoint(it) }.first { it.direction == 0x00 }
         try {
             onProgress("handshake", 0.0, "ESP SYNC")
-            val sync = EspRom.syncComman
-d()
+            val sync = EspRom.syncCommand()
             var attempts = 0
             var synced = false
             while (attempts < 10 && !synced) {
                 conn.bulkTransfer(epOut, sync, sync.size, 1000)
                 val resp = ByteArray(64)
                 val n = conn.bulkTransfer(epIn, resp, resp.size, 1000)
-                if 
-(n > 0 && EspRom.isSyncReply(resp.copyOfRange(0, n))) synced = true
+                if (n > 0 && EspRom.isSyncReply(resp.copyOfRange(0, n))) synced = true
                 attempts++
             }
             if (!synced) return UploadResult(false, "failed", false, "ESP ROM did not respond to SYNC")
-            onProgress("erasin
-g", 0
-.0, "flash begin")
+            onProgress("erasing", 0.0, "flash begin")
             val chunkSize = 0x4000
             val numPackets = (firmware.size + chunkSize - 1) / chunkSize
             conn.bulkTransfer(epOut, EspRom.flashBegin(firmware.size, 0x0, numPackets), 64, 2000)
@@ -321,8 +290,7 @@ g", 0
         val buf = ByteArray(64)
         val deadline = System.currentTimeMillis() + 3000
         while (System.currentTimeMillis() < deadline) {
-            val n = conn.bulkTransfer(epIn, 
-buf, buf.size, 500)
+            val n = conn.bulkTransfer(epIn, buf, buf.size, 500)
             if (n > 0 && buf[0] == 0x01.toByte()) return
         }
     }
