@@ -411,7 +411,10 @@ class DroidVibeUsbModule : Module() {
         val vid = String.format("%04x", d.vendorId)
         val pid = String.format("%04x", d.productId)
         
-        // Raspberry Pi RP2040
+                // STM32 via ST-Link
+        if (vid == "0483" && (pid == "3748" || pid == "374b" || pid == "3752" || pid == "374d" || pid == "374e" || pid == "374f")) return "stlink"
+
+// Raspberry Pi RP2040
         if (vid == "2e8a") {
             return "picoboot"
         }
