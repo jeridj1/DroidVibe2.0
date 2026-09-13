@@ -12,16 +12,25 @@
 8. Treat binary files, lockfiles, workflows, Gradle files, and TypeScript source as protected. Inspect before editing.
 9. If a file becomes unexpectedly tiny, binary, malformed, or radically different, STOP and restore it from Git before doing anything else.
 10. Do not create automated commits, branches, issues, or repeated retries merely because CI failed.
-11. Do not run autonomous repair loops. A failed validation produces evidence for the next deliberate change.
+11. Do not run autonomous repair loops — meaning blind retry-and-rerun with no new information between attempts. Deliberate, one-time research or diagnosis performed before a change is not a repair loop; it is required (see Root-cause diagnosis below).
 12. Preserve the last known-good commit. Never force-reset or rewrite main unless explicitly instructed by the repository owner.
+
+## Root-cause diagnosis (required before any fix)
+
+Before writing any fix, however small the surfacing error looks:
+
+1. State what subsystem the error is in, and list every other subsystem that reads from, writes to, or depends on it.
+2. Form a root-cause hypothesis. If the cause isn't obvious from the code and logs alone, use available research tools (web search, official docs, prior issues in this repo) to verify the hypothesis before touching code.
+3. Propose at least two viable fixes and state the tradeoff of each (e.g. "patch the symptom here" vs "fix the underlying type mismatch in shared/"). Pick one and say why.
+4. Only after 1-3 are written out, make the single change, following Rule 4 and the Recovery workflow below.
 
 ## Recovery workflow
 
 Use this order:
 
-READ -> PLAN -> ONE CHANGE -> VALIDATE -> COMMIT -> STOP.
+READ -> DIAGNOSE -> PLAN -> ONE CHANGE -> VALIDATE -> COMMIT -> STOP.
 
-For build failures, identify the first real error in the log. Fix that error only. Do not chase downstream errors until the first error is gone.
+For build failures: identify the first real error in the log, then complete Root-cause diagnosis above before fixing anything. Fix the root cause you identified, not just the symptom in the log. Still make only one change per cycle, then validate before moving to the next error.
 
 For corrupted files, use Git history to restore the last known-good version before making any functional change.
 
@@ -33,4 +42,4 @@ Read-only agents may audit architecture, history, tests, and build logs. A codin
 
 ## Definition of done
 
-A change is not complete because an agent says it is complete. It is complete only when the relevant source validation, typecheck, tests, Expo prebuild, and Android APK build pass as applicable.
+A change is not complete because an agent says it is complete. It is complete only when the relevant source validation, typecheck, tests, Expo prebuild, and Android APK build pass as applicable, AND the resulting app installs and functions correctly at runtime for the feature or fix in question. A green build alone is not sufficient.
